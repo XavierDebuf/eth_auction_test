@@ -4,28 +4,25 @@ import "hardhat/console.sol";
 contract Auction {
 /**owner: L'adresse du propriétaire du smart contract.
 start_time: La date et l'heure de début de l'enchère.
-end_time: La date et l'heure de fin de l'enchère.
 reserve_price: Le prix minimum auquel l'enchère doit être vendue.
-current_price: Le prix actuel de l'enchère.
-bids:  dictionnaire qui mappe les adresses des participants aux enchères au montant de leurs enchères. 
+bids:  tableau qui mappe les adresses des participants aux enchères au montant de leurs enchères. 
 */
     address payable owner;
     uint256 start_time;
-    uint256 end_time;
     uint256 reserve_price;
     uint256 current_price;
+    uint256 start_register;
     //mapping(address => uint256) bids;
     address payable winner;
-struct Bidder {
-        uint public memory Value;
-        address memory payable addr_emitter;
+    struct Bidder {
+        uint256  Value;
+        address  payable addr_emitter;
     }
-     
     mapping (address => Bidder) bidders;
-    address[] public bids;
+    Bidder[]  bids;
 
     constructor(uint256 _reserve_price){
-        owner = payable(msg.sender);
+        owner = payable (msg.sender);
         winner = owner;
         reserve_price = _reserve_price;
     }
@@ -33,52 +30,54 @@ struct Bidder {
         require(msg.sender != owner, "le payeur est le proprietaire");
         _;
     }
+    modifier register() {
+        require(block.timestamp<TimeDuringRegister(), "Les inscriptions sont terminees");
+        _;
+    }
+    modifier AuctionTime() {
+        require(block.timestamp<TimeDuringAuction(), "Les inscriptions sont terminees");
+        _;
+    }
+    modifier ActionAfterAuction(){
+      require(block.timestamp>TimeDuringAuction(), "l'enchere n'est pas terminee");
+      _;
+    }
+    function TimeDuringRegister() public returns(uint256){
+        start_register = block.timestamp;
+        return (start_register +3 minutes);
+    }
     function TimeDuringAuction() public returns(uint256) {
         start_time = block.timestamp;
         return (start_time +5 minutes);
     }
-
-    function addBidder (unit256 memory _value) public ownable{
-        Bidder memory newBidder = Bidder(_value, msg.sender);
+    function addBidder (uint256 _value, address payable addr) public ownable register{
+        Bidder memory newBidder = Bidder(_value, addr);
         bidders[msg.sender] = newBidder;
-        bids.push(msg.sender);
+        bids.push(newBidder);
     }
-     
-    function watchBidders(address _address) public view returns (uint)  {
-        return (bids[_address].Value);
-    }
-   /** function bid(uint256 amount) public payable ownable {
-        
-        require(block.timestamp >= start_time && block.timestamp <= end_time, "hors delai");
+    function bid(uint256 amount) public payable ownable AuctionTime{
         require(amount > current_price, "le montant est trop faible");
 
-        bids[msg.sender] = amount;
-        winner = payable(msg.sender);
-        current_price = bids[msg.sender];
-    }*/
-    function send(address to, uint256 amount) external ownable {
-      require(bids[to].value <= current_price, "Vous ne pouvez pas etre rembourse (proprietaire ou gagnant)");
-
-     (bids[to].Value,to);
+        
+        winner = payable (msg.sender);
+         bidders[msg.sender].Value=current_price;
     }
-    function refund(address[] memory toSend) external ownable {
-      for(uint8 i = 0; i <= toSend.length(); i++){
-        //quelle est la denomination du smart contract car owner ne detient pas les fonds?
-           emit owner.transfer(toSend[i].addr_emitter,toSend[i].value);
+
+    function refund() public ownable ActionAfterAuction{
+      for(uint8 i = 0; i <= bids.length; i++){
+            payable(bids[i].addr_emitter).transfer(bids[i].Value);
         }
     }
-    function transfertOwnership(address payable newAddress) public ownable{
+    function transfertOwnership(address payable newAddress) public ownable ActionAfterAuction{
         require(newAddress != address(0), "Adresse invalide");
         owner = newAddress;
     }
-    function auctionEnd() public {
-        require(block.timestamp >= end_time, "on a depasse le temps limite");
+    function auctionEnd() public ActionAfterAuction{
 
         if (current_price >= reserve_price) {
             winner.transfer(current_price);
         }
+        refund();
         transfertOwnership(winner);
     }
-   
-    
-}
+} 
