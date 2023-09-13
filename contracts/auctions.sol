@@ -22,8 +22,6 @@ bids:  tableau qui mappe les adresses des participants aux enchères au montant 
     Bidder[]  bids;
 
     constructor(uint256 _reserve_price){
-        owner = payable (msg.sender);
-        winner = owner;
         reserve_price = _reserve_price;
     }
     modifier ownable() {
@@ -57,15 +55,13 @@ bids:  tableau qui mappe les adresses des participants aux enchères au montant 
     }
     function bid(uint256 amount) public payable ownable AuctionTime{
         require(amount > current_price, "le montant est trop faible");
-
-        
-        winner = payable (msg.sender);
-         bidders[msg.sender].Value=current_price;
+         bidders[msg.sender].Value=amount;
+         current_price = amount;
     }
 
     function refund() public ownable ActionAfterAuction{
       for(uint8 i = 0; i <= bids.length; i++){
-            payable(bids[i].addr_emitter).transfer(bids[i].Value);
+            (bids[i].addr_emitter).transfer(bids[i].Value);
         }
     }
     function transfertOwnership(address payable newAddress) public ownable ActionAfterAuction{
