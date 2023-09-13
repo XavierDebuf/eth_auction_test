@@ -17,29 +17,29 @@ bids:  dictionnaire qui mappe les adresses des participants aux enchères au mon
     //mapping(address => uint256) bids;
     address payable winner;
 struct Bidder {
-        uint Value;
+        uint public memory Value;
+        address memory payable addr_emitter;
     }
      
     mapping (address => Bidder) bidders;
     address[] public bids;
 
-    
-      constructor(uint256 _reserve_price) {
+    constructor(uint256 _reserve_price){
         owner = payable(msg.sender);
         winner = owner;
         reserve_price = _reserve_price;
     }
     modifier ownable() {
-    require(msg.sender != owner, "le payeur est le proprietaire");
-    _;
-  }
- function TimeDuringAuction(uint256 _start_time) public returns(uint256) {
-      start_time = block.timestamp;
-      return (start_time +5 minutes);
+        require(msg.sender != owner, "le payeur est le proprietaire");
+        _;
+    }
+    function TimeDuringAuction(uint256 _start_time) public returns(uint256) {
+        start_time = block.timestamp;
+        return (start_time +5 minutes);
     }
 
-    function addBidder (string  _value) public ownable{
-        Bidder newBidder = Bidder(_value);
+    function addBidder (string memory _value) public ownable{
+        Bidder memory newBidder = Bidder(_value, msg.sender);
         bidders[msg.sender] = newBidder;
         bids.push(msg.sender);
     }
@@ -56,20 +56,16 @@ struct Bidder {
         winner = payable(msg.sender);
         current_price = bids[msg.sender];
     }
-   function send(address to, uint256 amount) external ownable {
-    require(bids[to].value <= current_price, "Vous ne pouvez pas etre rembourse (proprietaire ou gagnant)");
+    function send(address to, uint256 amount) external ownable {
+      require(bids[to].value <= current_price, "Vous ne pouvez pas etre rembourse (proprietaire ou gagnant)");
 
-
-    emit owner.transfer(bids[to].Value,to);
-}
-function refund(address[] toSend) external ownable {
-  for(uint8 i=0; i<= toSend.length(); i++){
-    send()
+     (bids[to].Value,to);
     }
-}
-
-   
-    
+    function refund(address[] memory toSend) external ownable {
+      for(uint8 i = 0; i <= toSend.length(); i++){
+           emit owner.transfer(toSend[i].addr_emitter,toSend[i].value);
+        }
+    }
     function transfertOwnership(address payable newAddress) public ownable{
         require(newAddress != address(0), "Adresse invalide");
         owner = newAddress;
