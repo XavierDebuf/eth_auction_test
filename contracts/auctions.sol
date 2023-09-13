@@ -58,7 +58,18 @@ bids:  tableau qui mappe les adresses des participants aux enchères au montant 
          bidders[msg.sender].Value=amount;
          current_price = amount;
     }
+    function biggestBidder() public returns(address payable){
+      uint max = 0;
+      uint win = 0;
+      for(uint8 i = 0; i <= bids.length; i++){
+            if (max<(bids[i].Value)){
+              max = bids[i].Value;
+              win = i;
+            }
+        }
+        return (bids[win].addr_emitter);
 
+    }
     function refund() public ownable ActionAfterAuction{
       for(uint8 i = 0; i <= bids.length; i++){
             (bids[i].addr_emitter).transfer(bids[i].Value);
@@ -71,9 +82,9 @@ bids:  tableau qui mappe les adresses des participants aux enchères au montant 
     function auctionEnd() public ActionAfterAuction{
 
         if (current_price >= reserve_price) {
-            winner.transfer(current_price);
+            owner.transfer(bidders[biggestBidder()].Value);
         }
         refund();
-        transfertOwnership(winner);
+        transfertOwnership(biggestBidder());
     }
 } 
