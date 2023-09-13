@@ -33,12 +33,12 @@ struct Bidder {
         require(msg.sender != owner, "le payeur est le proprietaire");
         _;
     }
-    function TimeDuringAuction(uint256 _start_time) public returns(uint256) {
+    function TimeDuringAuction() public returns(uint256) {
         start_time = block.timestamp;
         return (start_time +5 minutes);
     }
 
-    function addBidder (string memory _value) public ownable{
+    function addBidder (unit256 memory _value) public ownable{
         Bidder memory newBidder = Bidder(_value, msg.sender);
         bidders[msg.sender] = newBidder;
         bids.push(msg.sender);
@@ -47,7 +47,7 @@ struct Bidder {
     function watchBidders(address _address) public view returns (uint)  {
         return (bids[_address].Value);
     }
-    function bid(uint256 amount) public payable ownable {
+   /** function bid(uint256 amount) public payable ownable {
         
         require(block.timestamp >= start_time && block.timestamp <= end_time, "hors delai");
         require(amount > current_price, "le montant est trop faible");
@@ -55,7 +55,7 @@ struct Bidder {
         bids[msg.sender] = amount;
         winner = payable(msg.sender);
         current_price = bids[msg.sender];
-    }
+    }*/
     function send(address to, uint256 amount) external ownable {
       require(bids[to].value <= current_price, "Vous ne pouvez pas etre rembourse (proprietaire ou gagnant)");
 
@@ -63,6 +63,7 @@ struct Bidder {
     }
     function refund(address[] memory toSend) external ownable {
       for(uint8 i = 0; i <= toSend.length(); i++){
+        //quelle est la denomination du smart contract car owner ne detient pas les fonds?
            emit owner.transfer(toSend[i].addr_emitter,toSend[i].value);
         }
     }
