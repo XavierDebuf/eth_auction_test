@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.4.22 <0.9.0;
-import "hardhat/console.sol";
+
 contract Auction {
 /**owner: L'adresse du propriétaire du smart contract.
 start_time: La date et l'heure de début de l'enchère.
@@ -21,7 +21,7 @@ bids:  tableau qui mappe les adresses des participants aux enchères au montant 
     mapping (address => Bidder) bidders;
     Bidder[]  bids;
 
-    constructor(uint256 _reserve_price){
+    constructor(uint256 _reserve_price) public {
         reserve_price = _reserve_price;
     }
     modifier ownable() {
