@@ -44,7 +44,7 @@ struct Bidder {
         bids.push(msg.sender);
     }
      
-    function voirUtilisateur(address _address) public view returns (uint)  {
+    function watchBidders(address _address) public view returns (uint)  {
         return (bids[_address].Value);
     }
     function bid(uint256 amount) public payable ownable {
