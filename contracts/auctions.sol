@@ -19,9 +19,6 @@ contract Auction  {
 
     constructor(uint256 _reserve_price)  {
         reserve_price = _reserve_price;
-         Bidder memory newBidder = Bidder(0, msg.sender,true);
-        bidders[msg.sender] = newBidder;
-        bids.push(newBidder);
     }
     modifier ownable() {
         require(msg.sender != owner, "le payeur est le proprietaire");
@@ -90,9 +87,9 @@ contract Auction  {
             (bids[i].addr_emitter).transfer(bids[i].Value);
         }
     }
-    function transfertOwnership(address payable newAddress) public ownable ActionAfterAuction ActionAfterLastBid isBidder{
-        require(newAddress != address(0), "Adresse invalide");
-        owner = newAddress;
+    function transfertOwnership() public ownable ActionAfterAuction ActionAfterLastBid isBidder{
+        
+        owner = winner;
     }
     function auctionEnd() public ActionAfterLastBid ActionAfterAuction isBidder{
 
@@ -100,6 +97,7 @@ contract Auction  {
             owner.transfer(bidders[biggestBidder()].Value);
         }
         refund();
-        transfertOwnership(biggestBidder());
+        winner = biggestBidder();
+        transfertOwnership();
     }
 } 
